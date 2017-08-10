@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dimensia</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/styles/hover.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+</head>
+<body>
+    <script>
+        //jQuery can select elements on an existing page, or in another jQuery html document object.
+        //jQuery can construct elements and append them to the page.
+        var GridFace = function(transform){
+            var gridFace = $('<div>').css('position','absolute').addClass('face').css('background','rgba(0,0,0,0.25)')
+                .css('height','120px').css('width','120px').css('transform','translateZ(-40px)');
+            return gridFace;
+        };
+
+        var GridMatrix = function(cubeCount){
+            this.gridMatrix = $('<div>');
+            var frontFace = new CubeGrid(cubeCount,{top:{},faceGradient:'rgba(255,255,255,0.45)'}).css('position','absolute');
+            var midFace = new CubeGrid(cubeCount,{top:{'transform':'translateZ(-1000px)'},faceGradient:'rgba(255,255,255,0.30)'}).css('position','absolute');
+            var endFace = new CubeGrid(cubeCount,{top:{'transform':'translateZ(-2000px)'},faceGradient:'rgba(255,255,255,0.15)'}).css('position','absolute');
+
+            return this.gridMatrix.append(
+                frontFace,
+                midFace,
+                endFace
+            )
+        };
+
+        GridMatrix.prototype = function(){
+
+        };
+
+
+        var CubeGrid = function(cubeCount,cubeCss){
+            this.cubeCount = cubeCount;
+            this.cubeCss = cubeCss;
+            this.grid = $('<div>').addClass('row cubeGrid').css('pointer-events','none').css('padding','30px').css('perspective','150em');
+            for(var i=0;i<this.cubeCount;i++){
+                this.grid.append(new GridSpace(new Cube(this.cubeCss)))
+            }
+            return this.grid;
+        };
+
+
+        var GridSpace = function(cube){
+            return $('<div>').addClass('col-xs-3').css('z-index','-3000px').css('padding-top','60px').css('padding-bottom','60px').css('pointer-events','none').append(cube);
+        };
+
+        var Cube = function(cubeCss){
+            this.cube = $('<div>').css('pointer-events','auto').css('margin','0 auto').css('height','8em').css('width','8em').css('padding','0').css('transform-style','preserve-3d').css(cubeCss.top);
+            var self = this;
+
+            this.css = [
+                {'transform':'translateZ(40px)','background':'rgba(255,255,255,0.25)'},//Front
+                {'transform':'rotateY(180deg) translateZ(60px)','background':'rgba(0,0,0,0.35)'},//Back
+                {'transform':'rotateY(90deg) translateZ(60px)'},//Right
+                {'transform':'rotateY(-90deg) translateZ(60px)'},//Left
+                {'transform':'rotateX(90deg) translateZ(60px)'},//Top
+                {'transform':'rotateX(-90deg) translateZ(60px)','background':'rgba(0,0,0,0.35)'}//Bottom
+            ];
+            this.css[0].background = cubeCss.faceGradient;
+
+            for(var i=0;i<6;i++){
+                this.cube.append(new Face(this.css[i]))
+            }
+
+            $(self.cube).mouseover(function (event) {
+                event.stopPropagation();
+                console.log('Hover.');
+                self.cube.css('transition','2s ease').css('transform','translateZ(500px)');
+            }).mouseout(function (event) {
+                event.stopPropagation();
+                self.cube.css('transform','translateZ(-500px)');
+            });
+
+            return this.cube;
+        };
+
+        var Face = function(transform){
+            console.log(transform);
+            var face = $('<div>')
+                .css('position','absolute').addClass('face').css('background','rgba(0,0,0,0.25)')
+                .css('height','120px').css('width','120px').css(transform);
+            return face;
+        };
+
+        var WebApp = function(){
+
+            var div = function(){return $('<div>').css('height','50px')};
+            var homeImage = 'http://beloweb.ru/wp-content/uploads/2014/10/Blurred-Background_2-800x461.jpg';
+            this.backgroundImage = $('<div>').addClass('backgroundImage');
+
+            var backgroundClass = {
+                'height': '100%',
+                'width': '100%',
+                'background-size' :'cover',
+                'position': 'fixed',
+                'z-index': '-1;filter: blur(5px)'
+            };
+
+            this.backgroundImage.css(backgroundClass).css('pointer-events','none');
+            this.backgroundImage.css('background-image','linear-gradient(to left,rgba(24, 90, 157, 0.35), rgba(67, 206, 162, 0.35)), url('+ homeImage +')');
+            this.navBarContainer = div().addClass('text-center').css('height','100px');
+            this.navBarRow =  div().css('height','150px').addClass('row').css('padding','50px');
+            this.contentContainer = $('<div>').css('background','rgba(255,255,255,0.75)');
+            this.contentContainer.addClass('text-center');
+        };
+
+        WebApp.prototype = {
+
+            assemble: function(){
+                $('body').append(
+                    this.backgroundImage,
+                    this.contentContainer.append(
+                        this.navBarContainer.append(
+                            this.navBarRow.append(
+                                this.createNavElements(['Add','Forward','Back','Resize'])
+                            )
+                        ),
+                        new GridMatrix(16)
+                    )
+                );
+            },
+
+            createNavElements:function(navNames){
+                var elements = [];
+                var navDiv = function(){
+                    return $('<div>').addClass('col-xs-3 hvr-glow').css('height','50px')
+                };
+                for(var i = 0;i<navNames.length;i++){
+                    elements.push(
+                        navDiv().text(navNames[i]).click()
+                    )
+                }
+                return elements;
+            }
+        };
+
+
+
+        var WA = new WebApp();
+        WA.assemble();
+
+    </script>
+</body>
+</html>
